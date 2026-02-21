@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EX TRADER AI Premium</title>
+
+<style>
+body{
+    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    font-family:sans-serif;
+    color:#fff;
+    text-align:center;
+    margin:0;
+    padding:20px;
+}
+
+h1{
+    font-size:40px;
+    margin-bottom:30px;
+    text-shadow:0 0 15px #00ccff;
+}
+
+.button{
+    display:block;
+    width:90%;
+    max-width:400px;
+    margin:15px auto;
+    padding:18px;
+    background:#0a0a0a;
+    color:#fff;
+    font-weight:bold;
+    border-radius:15px;
+    font-size:20px;
+    cursor:pointer;
+    text-decoration:none;
+    box-shadow:0 0 15px #00ccff;
+    transition:0.3s;
+}
+
+.button:hover{
+    transform:scale(1.05);
+}
+
+.container{
+    display:none;
+    margin-top:30px;
+}
+
+.upload-box input{
+    display:none;
+}
+
+.upload-box label{
+    display:inline-block;
+    padding:15px 25px;
+    background:#000;
+    border-radius:10px;
+    cursor:pointer;
+    box-shadow:0 0 10px #00ccff;
+}
+
+.preview img{
+    max-width:100%;
+    margin-top:20px;
+    border-radius:10px;
+}
+
+.signal-box{
+    margin-top:20px;
+    padding:20px;
+    background:#111;
+    border-radius:10px;
+    display:none;
+}
+
+.buy{
+    color:#00ff99;
+    font-size:26px;
+    font-weight:bold;
+}
+
+.sell{
+    color:#ff4d4d;
+    font-size:26px;
+    font-weight:bold;
+}
+
+.confidence{
+    margin-top:10px;
+}
+
+.overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.95);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    z-index:999;
+}
+
+.overlay input{
+    padding:15px;
+    font-size:18px;
+    border-radius:10px;
+    border:none;
+    margin-bottom:15px;
+}
+
+#pinMessage{
+    margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>EX TRADER AI</h1>
+
+<a href="#" class="button" id="freeBtn">🆓 FREE TRIAL (3 Signals)</a>
+<a href="#" class="button" id="openPremium">🔐 PREMIUM PIN</a>
+<a href="#" class="button" id="resetTrial">♻ Reset Trial (1 Time)</a>
+
+<div class="container" id="freeContainer">
+    <h2>FREE MODE</h2>
+    <div class="upload-box">
+        <input type="file" id="uploadFree" accept="image/*">
+        <label for="uploadFree">Upload Chart Screenshot</label>
+    </div>
+    <div class="preview" id="previewFree"></div>
+    <div class="signal-box" id="signalFree">
+        <p id="signalTextFree"></p>
+        <p class="confidence" id="confidenceFree"></p>
+        <p>Timeframe: 1 Minute</p>
+    </div>
+</div>
+
+<div class="container" id="botContainer">
+    <h2>PREMIUM MODE</h2>
+    <div class="upload-box">
+        <input type="file" id="uploadPremium" accept="image/*">
+        <label for="uploadPremium">Upload Chart Screenshot</label>
+    </div>
+    <div class="preview" id="previewPremium"></div>
+    <div class="signal-box" id="signalPremium">
+        <p id="signalTextPremium"></p>
+        <p class="confidence" id="confidencePremium"></p>
+        <p>Timeframe: 1 Minute</p>
+    </div>
+</div>
+
+<div class="overlay" id="pinOverlay">
+    <h2>Enter Premium PIN</h2>
+    <input type="password" id="pinInput" placeholder="Enter PIN">
+    <button class="button" id="pinSubmit">Unlock</button>
+    <p id="pinMessage"></p>
+</div>
+
+<canvas id="canvas" style="display:none;"></canvas>
+
+<script>
+const CORRECT_PIN = "7980";
+const TELEGRAM_ID = "https://t.me/EXfahim0"; // এখানে তোমার Telegram username দাও
+const maxFreeTry = 3;
+
+let freeTryCount = parseInt(localStorage.getItem("freeTryCount")) || 0;
+let resetUsed = localStorage.getItem("resetUsed") || false;
+
+const freeBtn = document.getElementById("freeBtn");
+const freeContainer = document.getElementById("freeContainer");
+const botContainer = document.getElementById("botContainer");
+const pinOverlay = document.getElementById("pinOverlay");
+const pinInput = document.getElementById("pinInput");
+const pinSubmit = document.getElementById("pinSubmit");
+const pinMessage = document.getElementById("pinMessage");
+
+freeBtn.onclick = function(){
+    if(freeTryCount >= maxFreeTry){
+        alert("❌ Free Trial Over!");
+        return;
+    }
+    freeContainer.style.display="block";
+    botContainer.style.display="none";
+};
+
+document.getElementById("resetTrial").onclick = function(){
+    if(resetUsed){
+        alert("❌ Reset already used!");
+        return;
+    }
+    freeTryCount = 0;
+    localStorage.setItem("freeTryCount",0);
+    localStorage.setItem("resetUsed",true);
+    alert("✅ Trial Reset Successful!");
+};
+
+document.getElementById("openPremium").onclick = function(){
+    pinOverlay.style.display="flex";
+};
+
+pinSubmit.onclick = function(){
+    if(pinInput.value === CORRECT_PIN){
+        pinOverlay.style.display="none";
+        botContainer.style.display="block";
+        freeContainer.style.display="none";
+        pinMessage.innerHTML="";
+    }else{
+        pinMessage.innerHTML = `
+        ❌ পিন ভুল। Owner থেকে PIN সংগ্রহ করুন<br><br>
+        <a href="https://t.me/EXfahim0" target="_blank" 
+        style="color:#00ccff; font-weight:bold; text-decoration:none;">
+        👉 @${TELEGRAM_ID}
+        </a>`;
+    }
+};
+
+function setupUpload(uploadId, previewId, signalId, signalTextId, confidenceId, isFree){
+    const upload = document.getElementById(uploadId);
+    const preview = document.getElementById(previewId);
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const signalBox = document.getElementById(signalId);
+    const signalText = document.getElementById(signalTextId);
+    const confidenceText = document.getElementById(confidenceId);
+
+    upload.addEventListener("change", function(e){
+        if(isFree){
+            if(freeTryCount >= maxFreeTry){
+                alert("❌ Free Trial Over!");
+                return;
+            }
+            freeTryCount++;
+            localStorage.setItem("freeTryCount", freeTryCount);
+        }
+
+        const file = e.target.files[0];
+        if(!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(evt){
+            const img = new Image();
+            img.src = evt.target.result;
+            img.onload = function(){
+                preview.innerHTML="";
+                preview.appendChild(img);
+
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img,0,0);
+
+                const data = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+                let red=0, green=0;
+
+                for(let i=0;i<data.length;i+=4){
+                    let r=data[i], g=data[i+1], b=data[i+2];
+                    if(r>150 && g<100 && b<100) red++;
+                    if(g>150 && r<100 && b<100) green++;
+                }
+
+                let total = red+green;
+                if(total===0){
+                    alert("No Candlestick Detected!");
+                    return;
+                }
+
+                let confidence = Math.floor(Math.max(red,green)/total*100);
+
+                if(red>green){
+                    signalText.className="sell";
+                    signalText.innerText="🔥 NEXT CANDLE: SELL";
+                }else{
+                    signalText.className="buy";
+                    signalText.innerText="🔥 NEXT CANDLE: BUY";
+                }
+
+                confidenceText.innerText="Confidence: "+confidence+"%";
+                signalBox.style.display="block";
+            }
+        }
+        reader.readAsDataURL(file);
+    });
+}
+
+setupUpload("uploadFree","previewFree","signalFree","signalTextFree","confidenceFree",true);
+setupUpload("uploadPremium","previewPremium","signalPremium","signalTextPremium","confidencePremium",false);
+</script>
+
+</body>
+</html>
